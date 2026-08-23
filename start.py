@@ -1,0 +1,49 @@
+import asyncio
+import os
+import aiohttp
+from aiogram import Bot, Dispatcher
+from dotenv import load_dotenv
+from main.hendlers import router as hendlers_router
+from main.hendlers_python import router as hendlers_router1
+from main.hendlers_robotics import router as hendlers_router2
+from main.inostranio import router as hendlers_router3
+from main.my_command import router as hendlers_router4
+from main.play1 import router as hendlers_router5
+from main.play2 import router as hendlers_router6
+from database import init_answer, init_play  
+
+async def pinger():
+    """Функция, которая сама пингует сайт бота, чтобы он не спал"""
+    await asyncio.sleep(10)
+    async with aiohttp.ClientSession() as session:
+        while True:
+            try:
+                async with session.get('https://telegramm-bot-rpin.onrender.com') as response:
+                    print(f"Пинг выполнен! Статус: {response.status}")
+            except Exception as e:
+                print(f"Ошибка пинга: {e}")
+            await asyncio.sleep(600)
+
+load_dotenv()
+token = os.getenv("TOKEN")
+
+dp = Dispatcher()
+dp.include_routers(hendlers_router, hendlers_router1, hendlers_router2, hendlers_router3, hendlers_router4, hendlers_router5, hendlers_router6)
+
+async def main():
+    bot = Bot(token)
+    print("Инициализация таблиц базы данных...")
+    await init_answer() 
+    await init_play()   
+    print("Все таблицы успешно созданы и готовы к работе!")
+    
+    asyncio.create_task(pinger())
+    
+    print("Бот успешно запущен, пингер работает!")
+    await dp.start_polling(bot)
+
+if __name__ == "__main__":
+    try:
+        asyncio.run(main())
+    except (KeyboardInterrupt, SystemExit):
+        print("Бот остановлен!")
