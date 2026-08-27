@@ -20,7 +20,7 @@ async def python(message:Message):
 async def one_python(callback: CallbackQuery, state: FSMContext):
     await callback.message.answer("Python уровень Легкий \n\n В ответ писать только цифры правильного ответа")
     await callback.message.answer("1 вопрос \n\n Какая функция выводит текст в консоль \n 1.) print()\n 2.) input() \n 3.) log()")
-    await state.set_state(python1.a3)
+    await state.set_state(python1.a)
     await callback.answer()
 
 @router.message(python1.a)
@@ -76,7 +76,7 @@ async def d3(message:Message, state: FSMContext):
 async def two_python(callback: CallbackQuery, state: FSMContext):
     await callback.message.answer("Python уровень Средний \n\n В ответ писать только цифры правильного ответа")
     await callback.message.answer("1 вопрос \n\n Какая функция дабовляет что-то в конец списка \n 1.) .append\n 2.) .pop\n 3.) .ending")
-    await state.set_state(python2.a4)
+    await state.set_state(python2.a)
     await callback.answer()
 
 @router.message(python2.a)
@@ -131,7 +131,7 @@ async def d4(message:Message, state: FSMContext):
 async def three_python(callback: CallbackQuery,  state: FSMContext):
     await callback.message.answer("Python уровень Сложный \n\n В ответ писать только цифры правильного ответа")
     await callback.message.answer("1 вопрос \n\n Как создать функцию \n 1.) funcio \n 2.) funkcion \n 3.) def")
-    await state.set_state(python3.a5)
+    await state.set_state(python3.a)
     await callback.answer()
 
 @router.message(python3.a)
