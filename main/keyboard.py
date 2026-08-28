@@ -10,7 +10,7 @@ math = InlineKeyboardMarkup(
 )
 
 
-python = InlineKeyboardMarkup(
+pythonkb = InlineKeyboardMarkup(
     inline_keyboard=[
         [InlineKeyboardButton(text="1 уровень - Легкий", callback_data="one_python")],
         [InlineKeyboardButton(text="2 уровень - Средний", callback_data="two_python")],
