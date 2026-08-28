@@ -90,10 +90,7 @@ await message.answer("Введите количество экскурсий.")
 await state.set_state(escursi.col)
 
 @router.message(escursi.col)
-async def escu
-
-Сэм – ChatGPT нейросеть 🧠:
-rs_col_handler(message: Message, state: FSMContext):
+async def escurs_col_handler(message: Message, state: FSMContext):
 await state.update_data(col=message.text)
 data = await state.get_data()
 
