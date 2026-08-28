@@ -63,7 +63,7 @@ async def c(message: Message, state: FSMContext):
 async def d(message: Message, state: FSMContext):
     await state.set_data({"d": message.text})
     
-    await message.answer("<b>5 вопрос</b> 52/4")
+    await message.answer("<b>5 вопрос</b> 52/4", parse_mode="HTML")
     await state.set_state(math1.e)
 
 
@@ -136,7 +136,7 @@ async def c1(message: Message, state: FSMContext):
 async def d1(message: Message, state: FSMContext):
     await state.set_data({"d": message.text})
     
-    await message.answer("<b>5 вопрос</b> 2/2 * 3/2")
+    await message.answer("<b>5 вопрос</b> 2/2 * 3/2", parse_mode="HTML")
     await state.set_state(math2.e)
 
 
@@ -172,7 +172,7 @@ async def e1(message: Message, state: FSMContext):
 
 # Уровень 3
 @router.callback_query(F.data == "three_math")
-async def three(callback: CallbackQuery, state: FSMContext):  # исправлено имя one -> three
+async def three(callback: CallbackQuery, state: FSMContext):  
     await callback.message.answer("Викторина по математике уровень сложный")
     await callback.message.answer("<b>1 вопрос</b> \n 2 в 4 степени", parse_mode="HTML")
     await state.set_state(math3.a)
