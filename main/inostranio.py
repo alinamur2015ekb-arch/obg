@@ -48,12 +48,6 @@ async def yandex_api(query: str) -> str:
                     return f"Ошибка API: {response.status}"
 
 
-
-@router.message(CommandStart)
-async def start(message: Message):
-    await message.answer("Это бот для информаций о других страннах")
-    await message.answer("Команды: \n /pogoda \n /fakt \n /escurs \n /curs")
-
 #погода
 @router.message(Command("pogoda"))
 async def cmdo(message: Message, state: FSMContext):
