@@ -1,15 +1,20 @@
-# main.py
 import os
 import wikipedia
+import logging
 from aiogram import Router, F
 from aiogram.filters import Command, CommandStart
 from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
 from dotenv import load_dotenv
+import requests
+from json import JSONDecodeError
 
 from state.state import pogodai, fakti, escursi, cursi
 
 load_dotenv()
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 router = Router()
 
@@ -44,13 +49,23 @@ def wiki_search(query: str, sentences: int = 3) -> str:
             except (wikipedia.DisambiguationError, wikipedia.PageError):
                 # Пропускаем страницы неоднозначности и ошибки
                 continue
+            except JSONDecodeError as e:
+                logger.warning(f"JSONDecodeError для {title}: {e}")
+                continue
 
         if not lines:
             return "Ничего не найдено."
 
         return "Результаты из Wikipedia:\n\n" + "\n\n".join(lines[:5])
 
+    except JSONDecodeError as e:
+        logger.error(f"JSONDecodeError при поиске '{query}': {e}")
+        return "⚠️ Ошибка формата ответа от Wikipedia. Попробуй другой запрос."
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Ошибка сети: {e}")
+        return "⚠️ Ошибка сети. Проверь подключение к интернету."
     except Exception as e:
+        logger.error(f"Ошибка поиска: {type(e).__name__}: {e}")
         return f"⚠️ Ошибка поиска: {type(e).__name__}: {e}"
 
 
