@@ -22,51 +22,52 @@ router = Router()
 wikipedia.set_lang("ru")
 
 
-# ---------------------------
-# Поиск через Wikipedia
-# ---------------------------
-def wiki_search(query: str, sentences: int = 3) -> str:
-    """
-    Поиск через Wikipedia API.
-    Возвращает отформатированную строку с результатами.
-    """
+async def wiki_search(query: str) -> str:
+    """Ищет информацию по Википедии, защищена от ошибок JSON"""
+    url = "https://ru.wikipedia.org/w/api.php"
+    params = {
+        "action": "query",
+        "list": "search",
+        "srsearch": query,
+        "format": "json",
+        "utf8": "1"
+    }
+    
+    # Представляемся обычным браузером Chrome, чтобы Википедия отдавала чистый JSON:
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    }
+    
     try:
-        # Поиск по запросу
-        search_results = wikipedia.search(query, results=5)
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url, params=params, headers=headers, timeout=5) as response:
+                if response.status == 200:
+                    try:
+                        data = await response.json()
+                    except Exception:
+                        return f"ℹ️ Не удалось распарсить ответ для '{query}'."
 
-        if not search_results:
-            return "Ничего не найдено."
-
-        lines = []
-        for title in search_results:
-            try:
-                page = wikipedia.page(title, auto_suggest=False)
-                summary = page.summary[:500]  # Первые 500 символов
-                url = page.url
-
-                line = f"📖 {title}\n{summary}...\n🔗 {url}"
-                lines.append(line)
-            except (wikipedia.DisambiguationError, wikipedia.PageError):
-                # Пропускаем страницы неоднозначности и ошибки
-                continue
-            except JSONDecodeError as e:
-                logger.warning(f"JSONDecodeError для {title}: {e}")
-                continue
-
-        if not lines:
-            return "Ничего не найдено."
-
-        return "Результаты из Wikipedia:\n\n" + "\n\n".join(lines[:5])
-
-    except JSONDecodeError as e:
-        logger.error(f"JSONDecodeError при поиске '{query}': {e}")
-        return "⚠️ Ошибка формата ответа от Wikipedia. Попробуй другой запрос."
-    except requests.exceptions.RequestException as e:
-        logger.error(f"Ошибка сети: {e}")
-        return "⚠️ Ошибка сети. Проверь подключение к интернету."
+                    search_results = data.get("query", {}).get("search", [])
+                    
+                    if not search_results:
+                        return f"❌ По запросу '{query}' ничего не найдено."
+                    
+                    lines = []
+                    for item in search_results[:3]:
+                        title = item.get("title", "")
+                        # Очищаем текст от HTML-тегов Википедии:
+                        snippet = item.get("snippet", "").replace('<span class="searchmatch">', '').replace('</span>', '').replace('&quot;', '"')
+                        encoded_title = urllib.parse.quote(title)
+                        link = f"https://ru.wikipedia.org/wiki/{encoded_title}"
+                        
+                        lines.append(f"🔹 *{title}*\n{snippet}...\n🔗 [Читать в Википедии]({link})\n")
+                    
+                    return "🔎 *Результаты:*\n\n" + "\n".join(lines)
+                else:
+                    return f"⚠️ Википедия ответила со статусом: {response.status}"
     except Exception as e:
-        logger.error(f"Ошибка поиска: {type(e).__name__}: {e}")
-        return f"⚠️ Ошибка поиска: {type(e).__name__}: {e}"
+        return f"⚠️ Ошибка сети: {e}"
+
 
 
 # ---------------------------
