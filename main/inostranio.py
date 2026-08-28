@@ -79,7 +79,7 @@ async def pogoda_srok_handler(message: Message, state: FSMContext):
 
     strana = data.get("strana", "")
     srok = data.get("srok", "")
-    query = f"Погода {strana}"
+    query = f"Погода {strana} на {srok}"
 
     await message.answer(f"Ищу: {query}")
     result = wiki_search(query, sentences=3)
@@ -112,7 +112,7 @@ async def escurs_col_handler(message: Message, state: FSMContext):
 
     strana = data.get("strana", "")
     col = data.get("col", "")
-    query = f"Экскурсии {strana}"
+    query = f"Экскурсии {strana} {col} вариантов"
 
     await message.answer(f"Ищу: {query}")
     result = wiki_search(query, sentences=3)
@@ -151,7 +151,7 @@ async def curs_col_handler(message: Message, state: FSMContext):
     vala = data.get("vala", "")
     valb = data.get("valb", "")
     col = data.get("col", "")
-    query = f"Курс валют {valb} к {vala}"
+    query = f"Переведи {col} {vala} переведи в {valb}"
 
     await message.answer(f"Ищу: {query}")
     result = wiki_search(query, sentences=3)
