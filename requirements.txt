@@ -3,4 +3,4 @@ aiohttp==3.8.6
 asyncio
 python-dotenv
 aiosqlite
-duckduckgo_search
+googlesearch-python
