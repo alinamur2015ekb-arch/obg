@@ -26,27 +26,47 @@ async def yandex_api(query: str) -> str:
         "sortby": "rlv"
     }
     
-    async with aiohttp.ClientSession() as session:
-        async with session.get(url, params=params) as response:
-            if response.status == 200:
-                xml_text = await response.text()
-                root = ElementTree.fromstring(xml_text)
-                
-                results = []
-                for doc in root.findall(f'{YANDEX_NS}.//doc'):
-                    title = doc.findtext(f'{YANDEX_NS}title', '')
-                    snippet = doc.findtext(f'{YANDEX_NS}headline', '') or doc.findtext(f'{YANDEX_NS}passages', '')
-                    url_result = doc.findtext(f'{YANDEX_NS}url', '')
-                
-                    if title:
-                        results.append(f"🔹 {title} {snippet[:200]} {url_result}")
-                
-                if results:
-                    return "Результаты поиска: " + "\n".join(results[:5])
+    async def yandex_api(query: str) -> str:
+    """Запрос к Яндекс.Поиск API (XML)"""
+    url = "https://yandex.com/search/xml"
+    params = {
+        "user": "Keksik25092015",
+        "key": API,
+        "query": query,
+        "lr": 1, 
+        "l10n": "ru",
+        "sortby": "rlv"
+    }
+
+    # Таймаут 5 секунд, чтобы бот не зависал вечно:
+    timeout = aiohttp.ClientTimeout(total=5)
+
+    try:
+        async with aiohttp.ClientSession(timeout=timeout) as session:
+            async with session.get(url, params=params) as response:
+                if response.status == 200:
+                    xml_text = await response.text()
+                    root = ElementTree.fromstring(xml_text)
+                    
+                    results = []
+                    for doc in root.findall(f'{YANDEX_NS}.//doc'):
+                        title = doc.findtext(f'{YANDEX_NS}title', '')
+                        snippet = doc.findtext(f'{YANDEX_NS}headline', '') or doc.findtext(f'{YANDEX_NS}passages', '')
+                        url_result = doc.findtext(f'{YANDEX_NS}url', '')
+                    
+                        if title:
+                            results.append(f"🔹 {title}\n{snippet[:200]}\n🔗 {url_result}\n")
+                    
+                    if results:
+                        return "Результаты поиска:\n\n" + "\n".join(results[:5])
+                    else:
+                        return "Ничего не найдено"
                 else:
-                    return "Ничего не найдено"
-            else:
-                return f"Ошибка API: {response.status}"
+                    return f"Ошибка Яндекс API (Код {response.status}). Проверь IP сервера в кабинете Яндекс.XML!"
+    except asyncio.TimeoutError:
+        return "⚠️ Яндекс не ответил за 5 секунд. Попробуй ещё раз!"
+    except Exception as e:
+        return f"⚠️ Ошибка запроса: {e}"
 
 
 # Погода
