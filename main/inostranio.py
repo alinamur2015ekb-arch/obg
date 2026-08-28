@@ -1,138 +1,146 @@
-import os
-from aiogram import Router, F
-from aiogram.filters import Command, CommandStart
-from aiogram.types import Message, CallbackQuery
-from aiogram.fsm.context import FSMContext
-from dotenv import load_dotenv
+import asyncio
 from duckduckgo_search import DDGS
-
-from state.state import pogodai, fakti, escursi, cursi
-
-load_dotenv()
+from aiogram import Router
+from aiogram.types import Message
+from aiogram.filters import Command
+from aiogram.fsm.context import FSMContext
+from states import pogodai, escursi, cursi 
 
 router = Router()
 
 
-def ddg_search(query: str, max_results: int = 5) -> str:
-    """
-    Поиск через DuckDuckGo (библиотека duckduckgo_search).
-    Возвращает отформатированную строку с результатами.
-    """
-    try:
-        with DDGS() as ddgs:
-            results = ddgs.text(query, max_results=max_results)
+def ddg_search_sync(query: str, max_results: int = 5) -> str:
+"""
+Синхронный поиск через DuckDuckGo.
+Возвращает отформатированную строку с результатами.
+"""
+try:
+with DDGS() as ddgs:
+# Превращаем генератор в список
+results = list(ddgs.text(query, max_results=max_results))
 
-        if not results:
-            return "Ничего не найдено."
+if not results:
+return "❌ Ничего не найдено."
 
-        lines = []
-        for i, r in enumerate(results, start=1):
-            title = r.get("title", "")
-            body = r.get("body", "")
-            url = r.get("href", "")
+lines = []
+for i, r in enumerate(results, start=1):
+title = r.get("title", "")
+body = r.get("body", "")
+url = r.get("href", "")
 
-            line = f"{i}. {title}\n{body}\n🔗 {url}"
-            lines.append(line)
+line = f"{i}. {title}\n{body}\n🔗 {url}"
+lines.append(line)
 
-        return "Результаты поиска:\n\n" + "\n\n".join(lines)
+return "🔎 Результаты поиска:\n\n" + "\n\n".join(lines)
 
-    except Exception as e:
-        return f"⚠️ Ошибка поиска: {e}"
+except Exception as e:
+return f"⚠️ Ошибка поиска: {e}"
+
+async def ddg_search(query: str, max_results: int = 5) -> str:
+"""Асинхронная обёртка для безопасного поиска без подвисаний бота"""
+return await asyncio.to_thread(ddg_search_sync, query, max_results)
 
 
-# Погода
+# --- ПОГОДА
 @router.message(Command("pogoda"))
 async def cmd_pogoda_start(message: Message, state: FSMContext):
-    await message.answer("Введите остров/город/село, в котором хотите узнать погоду.")
-    await state.set_state(pogodai.strana)
-
+await state.clear()
+await message.answer("Введите остров/город/село, в котором хотите узнать погоду.")
+await state.set_state(pogodai.strana)
 
 @router.message(pogodai.strana)
 async def pogoda_strana_handler(message: Message, state: FSMContext):
-    await state.update_data(strana=message.text)
-    await message.answer(
-        "Введите срок, на который нужно узнать погоду (например: сегодня, завтра, 3 дня)."
-    )
-    await state.set_state(pogodai.srok)
-
+await state.update_data(strana=message.text)
+await message.answer(
+"Введите срок, на который нужно узнать погоду (например: сегодня, завтра, 3 дня)."
+)
+await state.set_state(pogodai.srok)
 
 @router.message(pogodai.srok)
 async def pogoda_srok_handler(message: Message, state: FSMContext):
-    await state.update_data(srok=message.text)
-    data = await state.get_data()
+await state.update_data(srok=message.text)
+data = await state.get_data()
 
-    strana = data.get("strana", "")
-    srok = data.get("srok", "")
-    query = f"Погода {strana} на {srok}"
+strana = data.get("strana", "")
+srok = data.get("srok", "")
 
-    await message.answer(f"Ищу: {query}")
-    result = ddg_search(query, max_results=5)
-    await message.answer(result)
-    await state.clear()
+# Очищаем состояние ДО запроса, чтобы бот не вис в FSM
+await state.clear()
+
+query = f"Погода {strana} на {srok}"
+await message.answer(f"🔎 Ищу: {query}...")
+
+result = await ddg_search(query, max_results=5)
+await message.answer(result, disable_web_page_preview=True)
 
 
-
+# --- 2. ЭКСКУРСИИ
 @router.message(Command("escurs"))
 async def cmd_escurs_start(message: Message, state: FSMContext):
-    await message.answer(
-        "Введите страну/область/остров, в которой хотите узнать про популярные экскурсии."
-    )
-    await state.set_state(escursi.strana)
-
+await state.clear()
+await message.answer(
+"Введите страну/область/остров, в которой хотите узнать про популярные экскурсии."
+)
+await state.set_state(escursi.strana)
 
 @router.message(escursi.strana)
 async def escurs_strana_handler(message: Message, state: FSMContext):
-    await state.update_data(strana=message.text)
-    await message.answer("Введите количество экскурсий.")
-    await state.set_state(escursi.col)
-
+await state.update_data(strana=message.text)
+await message.answer("Введите количество экскурсий.")
+await state.set_state(escursi.col)
 
 @router.message(escursi.col)
-async def escurs_col_handler(message: Message, state: FSMContext):
-    await state.update_data(col=message.text)
-    data = await state.get_data()
+async def escu
 
-    strana = data.get("strana", "")
-    col = data.get("col", "")
-    query = f"Популярные экскурсии в {strana} {col} вариантов"
+Сэм – ChatGPT нейросеть 🧠:
+rs_col_handler(message: Message, state: FSMContext):
+await state.update_data(col=message.text)
+data = await state.get_data()
 
-    await message.answer(f"Ищу: {query}")
-    result = ddg_search(query, max_results=5)
-    await message.answer(result)
-    await state.clear()
+strana = data.get("strana", "")
+col = data.get("col", "")
+
+await state.clear()
+
+query = f"Популярные экскурсии в {strana} {col} вариантов"
+await message.answer(f"🔎 Ищу: {query}...")
+
+result = await ddg_search(query, max_results=5)
+await message.answer(result, disable_web_page_preview=True)
 
 
+# --- 3. КУРС ВАЛЮТ (/curs) ---
 @router.message(Command("curs"))
 async def cmd_curs_start(message: Message, state: FSMContext):
-    await message.answer("Введите валюту, в которую будете переводить (например: USD).")
-    await state.set_state(cursi.vala)
-
+await state.clear()
+await message.answer("Введите валюту, в которую будете переводить (например: USD, рублей).")
+await state.set_state(cursi.vala)
 
 @router.message(cursi.vala)
 async def curs_vala_handler(message: Message, state: FSMContext):
-    await state.update_data(vala=message.text)
-    await message.answer("Введите валюту, из которой будете переводить (например: RUB).")
-    await state.set_state(cursi.valb)
-
+await state.update_data(vala=message.text)
+await message.answer("Введите валюту, из которой будете переводить (например: RUB, долларов).")
+await state.set_state(cursi.valb)
 
 @router.message(cursi.valb)
 async def curs_valb_handler(message: Message, state: FSMContext):
-    await state.update_data(valb=message.text)
-    await message.answer("Введите количество, которое нужно перевести.")
-    await state.set_state(cursi.col)
-
+await state.update_data(valb=message.text)
+await message.answer("Введите количество, которое нужно перевести.")
+await state.set_state(cursi.col)
 
 @router.message(cursi.col)
 async def curs_col_handler(message: Message, state: FSMContext):
-    await state.update_data(col=message.text)
-    data = await state.get_data()
+await state.update_data(col=message.text)
+data = await state.get_data()
 
-    vala = data.get("vala", "")
-    valb = data.get("valb", "")
-    col = data.get("col", "")
-    query = f"Сколько {col} {valb} в {vala}"
+vala = data.get("vala", "")
+valb = data.get("valb", "")
+col = data.get("col", "")
 
-    await message.answer(f"Ищу: {query}")
-    result = ddg_search(query, max_results=5)
-    await message.answer(result)
-    await state.clear()
+await state.clear()
+
+query = f"Сколько {col} {valb} в {vala} курс"
+await message.answer(f"🔎 Ищу: {query}...")
+
+result = await ddg_search(query, max_results=5)
+await message.answer(result, disable_web_page_preview=True)
