@@ -1,4 +1,3 @@
-# routers/user_commands.py
 import os
 from aiogram import Router, F
 from aiogram.filters import Command, CommandStart
