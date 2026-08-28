@@ -1,39 +1,54 @@
+# main.py
 import os
+import wikipedia
 from aiogram import Router, F
 from aiogram.filters import Command, CommandStart
 from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
 from dotenv import load_dotenv
-from googlesearch import search
+
 from state.state import pogodai, fakti, escursi, cursi
 
 load_dotenv()
 
 router = Router()
 
+# Настройка языка Wikipedia (русский)
+wikipedia.set_lang("ru")
+
 
 # ---------------------------
-# Поиск через Google
+# Поиск через Wikipedia
 # ---------------------------
-def google_search(query: str, max_results: int = 5) -> str:
+def wiki_search(query: str, sentences: int = 3) -> str:
     """
-    Поиск через Google Search.
+    Поиск через Wikipedia API.
     Возвращает отформатированную строку с результатами.
     """
     try:
-        results = []
-        for j in search(query, num_results=max_results, lang="ru"):
-            title = j.title if hasattr(j, 'title') else "Без названия"
-            description = j.description if hasattr(j, 'description') else ""
-            url = j.url if hasattr(j, 'url') else j.href
+        # Поиск по запросу
+        search_results = wikipedia.search(query, results=5)
 
-            if title or description:
-                results.append(f"🔗 {url}\n{title}\n{description}")
-
-        if not results:
+        if not search_results:
             return "Ничего не найдено."
 
-        return "Результаты поиска:\n\n" + "\n\n".join(results[:5])
+        lines = []
+        for title in search_results:
+            try:
+                page = wikipedia.page(title, auto_suggest=False)
+                summary = page.summary[:500]  # Первые 500 символов
+                url = page.url
+
+                line = f"📖 {title}\n{summary}...\n🔗 {url}"
+                lines.append(line)
+            except (wikipedia.DisambiguationError, wikipedia.PageError):
+                # Пропускаем страницы неоднозначности и ошибки
+                continue
+
+        if not lines:
+            return "Ничего не найдено."
+
+        return "Результаты из Wikipedia:\n\n" + "\n\n".join(lines[:5])
 
     except Exception as e:
         return f"⚠️ Ошибка поиска: {type(e).__name__}: {e}"
@@ -64,10 +79,10 @@ async def pogoda_srok_handler(message: Message, state: FSMContext):
 
     strana = data.get("strana", "")
     srok = data.get("srok", "")
-    query = f"Погода {strana} на {srok}"
+    query = f"Погода {strana}"
 
     await message.answer(f"Ищу: {query}")
-    result = google_search(query, max_results=5)
+    result = wiki_search(query, sentences=3)
     await message.answer(result)
     await state.clear()
 
@@ -97,10 +112,10 @@ async def escurs_col_handler(message: Message, state: FSMContext):
 
     strana = data.get("strana", "")
     col = data.get("col", "")
-    query = f"Популярные экскурсии в {strana} {col} вариантов"
+    query = f"Экскурсии {strana}"
 
     await message.answer(f"Ищу: {query}")
-    result = google_search(query, max_results=5)
+    result = wiki_search(query, sentences=3)
     await message.answer(result)
     await state.clear()
 
@@ -136,9 +151,9 @@ async def curs_col_handler(message: Message, state: FSMContext):
     vala = data.get("vala", "")
     valb = data.get("valb", "")
     col = data.get("col", "")
-    query = f"Сколько {col} {valb} в {vala}"
+    query = f"Курс валют {valb} к {vala}"
 
     await message.answer(f"Ищу: {query}")
-    result = google_search(query, max_results=5)
+    result = wiki_search(query, sentences=3)
     await message.answer(result)
     await state.clear()
