@@ -4,8 +4,7 @@ from aiogram.filters import Command, CommandStart
 from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
 from dotenv import load_dotenv
-from duckduckgo_search import DDGS
-
+from googlesearch import search
 from state.state import pogodai, fakti, escursi, cursi
 
 load_dotenv()
@@ -13,31 +12,31 @@ load_dotenv()
 router = Router()
 
 
-def ddg_search(query: str, max_results: int = 5) -> str:
+# ---------------------------
+# Поиск через Google
+# ---------------------------
+def google_search(query: str, max_results: int = 5) -> str:
     """
-    Поиск через DuckDuckGo (библиотека duckduckgo_search).
+    Поиск через Google Search.
     Возвращает отформатированную строку с результатами.
     """
     try:
-        with DDGS() as ddgs:
-            results = ddgs.text(query, max_results=max_results)
+        results = []
+        for j in search(query, num_results=max_results, lang="ru"):
+            title = j.title if hasattr(j, 'title') else "Без названия"
+            description = j.description if hasattr(j, 'description') else ""
+            url = j.url if hasattr(j, 'url') else j.href
+
+            if title or description:
+                results.append(f"🔗 {url}\n{title}\n{description}")
 
         if not results:
             return "Ничего не найдено."
 
-        lines = []
-        for i, r in enumerate(results, start=1):
-            title = r.get("title", "")
-            body = r.get("body", "")
-            url = r.get("href", "")
-
-            line = f"{i}. {title}\n{body}\n🔗 {url}"
-            lines.append(line)
-
-        return "Результаты поиска:\n\n" + "\n\n".join(lines)
+        return "Результаты поиска:\n\n" + "\n\n".join(results[:5])
 
     except Exception as e:
-        return f"⚠️ Ошибка поиска: {e}"
+        return f"⚠️ Ошибка поиска: {type(e).__name__}: {e}"
 
 
 # ---------------------------
@@ -68,7 +67,7 @@ async def pogoda_srok_handler(message: Message, state: FSMContext):
     query = f"Погода {strana} на {srok}"
 
     await message.answer(f"Ищу: {query}")
-    result = ddg_search(query, max_results=5)
+    result = google_search(query, max_results=5)
     await message.answer(result)
     await state.clear()
 
@@ -101,7 +100,7 @@ async def escurs_col_handler(message: Message, state: FSMContext):
     query = f"Популярные экскурсии в {strana} {col} вариантов"
 
     await message.answer(f"Ищу: {query}")
-    result = ddg_search(query, max_results=5)
+    result = google_search(query, max_results=5)
     await message.answer(result)
     await state.clear()
 
@@ -140,6 +139,6 @@ async def curs_col_handler(message: Message, state: FSMContext):
     query = f"Сколько {col} {valb} в {vala}"
 
     await message.answer(f"Ищу: {query}")
-    result = ddg_search(query, max_results=5)
+    result = google_search(query, max_results=5)
     await message.answer(result)
     await state.clear()
