@@ -8,7 +8,7 @@ from states import pogodai, escursi, cursi
 
 router = Router()
 
-
+# --- ФУНКЦИЯ ПОИСКА ЧЕРЕЗ DUCKDUCKGO ---
 def ddg_search_sync(query: str, max_results: int = 5) -> str:
 """
 Синхронный поиск через DuckDuckGo.
@@ -41,7 +41,7 @@ async def ddg_search(query: str, max_results: int = 5) -> str:
 return await asyncio.to_thread(ddg_search_sync, query, max_results)
 
 
-# --- ПОГОДА
+# --- 1. ПОГОДА (/pogoda) ---
 @router.message(Command("pogoda"))
 async def cmd_pogoda_start(message: Message, state: FSMContext):
 await state.clear()
@@ -74,7 +74,7 @@ result = await ddg_search(query, max_results=5)
 await message.answer(result, disable_web_page_preview=True)
 
 
-# --- 2. ЭКСКУРСИИ
+# --- 2. ЭКСКУРСИИ (/escurs) ---
 @router.message(Command("escurs"))
 async def cmd_escurs_start(message: Message, state: FSMContext):
 await state.clear()
