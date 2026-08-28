@@ -1,4 +1,5 @@
 import os
+import asyncio
 from aiogram import Router, F
 from aiogram.filters import Command, CommandStart
 from aiogram.types import Message, CallbackQuery
