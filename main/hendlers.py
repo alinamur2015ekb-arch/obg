@@ -207,7 +207,7 @@ async def c2(message: Message, state: FSMContext):
 async def d2(message: Message, state: FSMContext):
     await state.set_data({"d": message.text})
     
-    await message.answer("<b>5 вопрос</b> log(2) = 8")
+    await message.answer("<b>5 вопрос</b> log(2) = 8", parse_mode="HTML")
     await state.set_state(math3.e)
 
 
