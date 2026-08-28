@@ -10,10 +10,6 @@ router = Router()
 
 # --- ФУНКЦИЯ ПОИСКА ЧЕРЕЗ DUCKDUCKGO ---
 def ddg_search_sync(query: str, max_results: int = 5) -> str:
-"""
-Синхронный поиск через DuckDuckGo.
-Возвращает отформатированную строку с результатами.
-"""
 try:
 with DDGS() as ddgs:
 # Превращаем генератор в список
