@@ -15,19 +15,6 @@ YANDEX_NS = "{http://yandex.com/xml}"
 
 async def yandex_api(query: str) -> str:
     """Запрос к Яндекс.Поиск API (XML)"""
-    
-    url = "https://yandex.com/search/xml"
-    params = {
-        "user": "Keksik25092015",
-        "key": API,
-        "query": query,
-        "lr": 1, 
-        "l10n": "ru",
-        "sortby": "rlv"
-    }
-    
-    async def yandex_api(query: str) -> str:
-    """Запрос к Яндекс.Поиск API (XML)"""
     url = "https://yandex.com/search/xml"
     params = {
         "user": "Keksik25092015",
@@ -38,7 +25,6 @@ async def yandex_api(query: str) -> str:
         "sortby": "rlv"
     }
 
-    # Таймаут 5 секунд, чтобы бот не зависал вечно:
     timeout = aiohttp.ClientTimeout(total=5)
 
     try:
